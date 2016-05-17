@@ -52,8 +52,8 @@ FEATURE_NAMES = [
     "player_jumps_per_frame",
     "collisions_ball_player_per_frame",
     "collisions_ball_wall_per_frame",
-    "travel_distance_player_per_second",
-    "travel_distance_ball_per_second"
+    "travel_distance_player_per_frame",
+    "travel_distance_ball_per_frame"
 ]
 
 
@@ -385,8 +385,8 @@ def _evaluate(genome, space, screen, fast_mode, start_x, start_vx, bot_startx):
     player_jumps_per_frame = float(total_player_jumps) / frames
     collisions_ball_player_per_frame = float(total_collisions_ball_player) / frames
     collisions_ball_wall_per_frame = float(total_collisions_ball_wall) / frames
-    travel_distance_player_per_second = float(total_travel_distance_player) / frames
-    travel_distance_ball_per_second = float(total_travel_distance_ball) / frames
+    travel_distance_player_per_frame = float(total_travel_distance_player) / frames
+    travel_distance_ball_per_frame = float(total_travel_distance_ball) / frames
     
     feature_set = FeatureSet()
     feature_set.insert_many({
@@ -408,8 +408,8 @@ def _evaluate(genome, space, screen, fast_mode, start_x, start_vx, bot_startx):
         "player_jumps_per_frame": player_jumps_per_frame,
         "collisions_ball_player_per_frame": collisions_ball_player_per_frame,
         "collisions_ball_wall_per_frame": collisions_ball_wall_per_frame,
-        "travel_distance_player_per_second": travel_distance_player_per_second,
-        "travel_distance_ball_per_second": travel_distance_ball_per_second
+        "travel_distance_player_per_frame": travel_distance_player_per_frame,
+        "travel_distance_ball_per_frame": travel_distance_ball_per_frame
     })
 
     feature_set.verify()
