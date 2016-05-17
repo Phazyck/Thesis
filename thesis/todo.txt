@@ -1,0 +1,40 @@
+- Come up with shitloads of features.
+- Samples the shit out of 'em.
+- Build histograms!
+- ???
+- Profit!
+
+Features:
+    
+    "total_frames_passed"
+    "total_collisions_ball_player"
+    "total_collisions_ball_wall"
+    "total_player_jumps"
+    "total_travel_distance_player"
+    "total_travel_distance_ball"
+
+    "average_x_position_player"
+    "average_x_position_ball"
+    "average_y_position_ball"
+    "average_distance_ball_player"
+
+    "max_ball_velocity"
+    "max_ball_y_position"
+    "max_distance_player_ball"
+
+    "final_distance_player_ball"
+    
+Sample settings
+
+    sample_size     10.000.000
+    population size 64
+    generations     32
+    fitness-fun     random
+    
+    sample_size     10.000.000
+    population size 32
+    generations     64
+    fitness-fun     random
+    
+    
+    
