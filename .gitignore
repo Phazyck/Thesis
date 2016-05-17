@@ -1,0 +1,15 @@
+build/
+datadump/*
+*.test
+*.png
+*.gen
+*.xml
+*.pyc
+*.pkl
+*.csv
+*.bin
+*~
+*core*
+/Release/
+/Debug/
+/dist/
