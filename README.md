@@ -15,13 +15,13 @@ Execute the following commands:
 The following three steps can be done in parallel:
 
 * sudo apt-get install build-essential libopencv-dev python-opencv libboost-all-dev g++ python-numpy python-opencv python-pygame python-scipy python-matplotlib
-* clone the repository (git clone https://<UNAME>@bitbucket.org/Phazyck/multineat.git)
+* clone the repository (git clone https://github.com/Phazyck/Thesis.git)
 * sudo pip install futures networkx cv2 pymunk tools
 
 
 Once all three steps are done:
 
-* cd multineat
+* cd Thesis
 * sudo python setup.py install
 
 You can now take a short break to marvel at all the hideous errors, spreading like a cancer in your terminal.
