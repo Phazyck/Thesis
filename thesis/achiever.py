@@ -79,7 +79,8 @@ def make_rarity_stats(genome,
                       feature_indices,
                       generation,
                       generation_id,
-                      rarity_table):
+                      rarity_table,
+                      threshhold_control):
 
     r_genome = NEAT.Genome(genome)
     r_behavior = behavior
@@ -105,8 +106,7 @@ def make_rarity_stats(genome,
     best_selected = None
 
     rarity_threshhold = None
-    threshhold_control = 8.0
-
+    
     for features in feature_combinations:
     
         features_len = len(features)
@@ -305,7 +305,7 @@ class NoveltySearch(object):
 
         if not os.path.isfile(pkl_path):
             pkl_file = open(pkl_path, "wb")
-            pickle.dump(self.rarity_table_params, pkl_file)
+            pickle.dump(rarity_table_params, pkl_file)
             pickle.dump(filter.indices, pkl_file)
             pkl_file.close()
         
@@ -315,12 +315,14 @@ class NoveltySearch(object):
         pkl_file.close()
         
 
-    def __init__(self, genome, params, evaluate, rarity_table_params, seed=1):
+    def __init__(self, genome, params, evaluate, rarity_table_params, threshhold_control, seed=1):
+
+        self.threshhold_control = threshhold_control
 
         self.rarity_table_params = rarity_table_params
-        (sample_count, population_size, generations) = rarity_table_params
+        (sample_count, population_size, generations, bin_count) = rarity_table_params
         rarity_table = rarity_recognition.get_rarity_table(
-            sample_count, population_size, generations)
+            sample_count, population_size, generations, bin_count)
 
         self.rarity_table = rarity_table
 
@@ -454,7 +456,8 @@ class NoveltySearch(object):
                     filter.indices,
                     generation,
                     generation_id,
-                    self.rarity_table)
+                    self.rarity_table,
+                    self.threshhold_control)
                 
                 for stat in stats:
                     
@@ -494,27 +497,18 @@ def main(args):
     # a seed for some RNG
     seed = 10
 
-    from flags import FlagParser, FlagQuerier
+    from flags import query_int, query_float
 
-    if len(args) <= 1:
-        querier = FlagQuerier()
+    sample_count = query_int("sample_count", 10000000)
+    population_size = query_int("population_size", 10)
+    generations = query_int("generations", 200)
+    bin_count = query_int("bin_count", 20)
+    threshhold_control = query_float("threshhold_control", 10.0)
 
-        sample_count = int(querier.sample_count)
-        population_size = int(querier.population_size)
-        generations = int(querier.generations)
-
-    else:
-        parser = FlagParser()
-        parser.parse_flags(args)
-
-        sample_count = parser.sample_count
-        population_size = parser.population_size
-        generations = parser.generations
-
-    rarity_table_params = (sample_count, population_size, generations)
+    rarity_table_params = (sample_count, population_size, generations, bin_count)
 
     novelty_searcher = NoveltySearch(
-        genome, parameters, evaluate, rarity_table_params, seed)
+        genome, parameters, evaluate, rarity_table_params, threshhold_control, seed)
 
     thread.start_new_thread(novelty_searcher.do_generations, ())
 

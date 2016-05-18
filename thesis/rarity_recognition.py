@@ -325,7 +325,13 @@ def debug_print_population_size(population):
 def build_rarity_table(
         sample_count,
         population_size,
-        generations):
+        generations,
+        bin_count):
+        
+    #bin_count = math.ceil(2.0 * (sample_count ** (1.0/3.0)))
+    #bin_count = 40
+    #bin_count = 20
+        
     """
     A function for building a rarity table.
     """
@@ -341,10 +347,6 @@ def build_rarity_table(
     # collecting list of behaviors in to lists of features
 
     column_count = len(column_names)
-
-    #bin_count = math.ceil(2.0 * (sample_count ** (1.0/3.0)))
-    bin_count = 40
-    #bin_count = 20
 
     min_list = [None] * column_count
     max_list = [None] * column_count
@@ -426,7 +428,8 @@ def build_rarity_table(
 def get_rarity_table_path(
         sample_count,
         population_size,
-        generations):
+        generations,
+        bin_count):
 
     formatter = string.Formatter()
 
@@ -436,10 +439,11 @@ def get_rarity_table_path(
         os.makedirs(dir_name)
 
     file_name = formatter.format(
-        "cache_{0}_{1}_{2}.pkl",
+        "cache_{0}_{1}_{2}_{3}.pkl",
         sample_count,
         population_size,
-        generations)
+        generations,
+        bin_count)
 
     file_path = os.path.join(dir_name, file_name)
 
@@ -472,10 +476,11 @@ def save_rarity_table(rarity_table, file_path):
 def get_rarity_table(
         sample_count,
         population_size,
-        generations):
+        generations,
+        bin_count):
 
     table_path = get_rarity_table_path(
-        sample_count, population_size, generations)
+        sample_count, population_size, generations, bin_count)
 
     print "Loading rarity table..."
 
@@ -484,7 +489,7 @@ def get_rarity_table(
     if table is None:
         print "...could not find a cached table."
         print "Creating new table..."
-        table = build_rarity_table(sample_count, population_size, generations)
+        table = build_rarity_table(sample_count, population_size, generations, bin_count)
         print "...caching table..."
         save_rarity_table(table, table_path)
 
@@ -496,7 +501,7 @@ def str2bool(the_string):
     return (str(the_string)).lower() in ("yes", "true", "t", "1")
 
 
-def save_to_csv(sample_count, population_size, generations, table):
+def save_to_csv(sample_count, population_size, generations, bin_count, table):
     formatter = string.Formatter()
 
     dir_name = "histograms"
@@ -505,10 +510,11 @@ def save_to_csv(sample_count, population_size, generations, table):
         os.makedirs(dir_name)
 
     file_name = formatter.format(
-        "histogram_{0}_{1}_{2}.csv",
+        "histogram_{0}_{1}_{2}_{3}.csv",
         sample_count,
         population_size,
-        generations)
+        generations,
+        bin_count)
 
     file_path = os.path.join(dir_name, file_name)
 
@@ -527,35 +533,26 @@ def main(args):
     """
     The main entrypoint.
     """
+    
+    from flags import query_int
 
-    from flags import FlagParser, FlagQuerier
-
-    if len(args) <= 1:
-        querier = FlagQuerier()
-
-        sample_count = int(querier.sample_count)
-        population_size = int(querier.population_size)
-        generations = int(querier.generations)
-
-    else:
-        parser = FlagParser()
-        parser.parse_flags(sys.argv)
-
-        sample_count = parser.sample_count
-        population_size = parser.population_size
-        generations = parser.generations
-
+    sample_count = query_int("sample_count", 10000000)
+    population_size = query_int("population_size", 10)
+    generations = query_int("generations", 200)
+    bin_count = query_int("bin_count", 20)
+   
     print "Preparing rarity table..."
 
     table = get_rarity_table(
         sample_count,
         population_size,
-        generations)
+        generations,
+        bin_count)
 
     make_csv = yesno.query("Do you wish to save the histograms to a CSV-file?")
 
     if make_csv:
-        save_to_csv(sample_count, population_size, generations, table)
+        save_to_csv(sample_count, population_size, generations, bin_count, table)
 
 if __name__ == "__main__":
     main(sys.argv)

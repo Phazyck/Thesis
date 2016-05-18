@@ -75,3 +75,27 @@ class FlagQuerier(object):
             value = getattr(self, query)
             print ('%s set to "%s"\n' % (query, str(value)))
             
+            
+def query_int(name, default):
+    
+    print ("set %s to (default = %s):" % (name, str(default))),
+    
+    answer = raw_input()
+    
+    if len(answer) > 0:
+        result = int(answer)
+        return result
+    else:
+        return default
+        
+def query_float(name, default):
+    
+    print ("set %s to (default = %s):" % (name, str(default))),
+    
+    answer = raw_input()
+    
+    if len(answer) > 0:
+        result = float(answer)
+        return result
+    else:
+        return default
