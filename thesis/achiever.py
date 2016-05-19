@@ -30,6 +30,7 @@ import nbest
 from nbest import NBest
 import thread
 import config
+from ball_keeper import FEATURE_NAMES
 
 from sampling2 import Meta
 
@@ -246,10 +247,10 @@ subset = [
     "average_y_position_ball",
     
     # 9
-    "average_distance_ball_player",
+    # "average_distance_ball_player",
 
     # 10
-    #"max_ball_velocity",
+    # "max_ball_velocity",
     
     # 11
     #"max_ball_y_position",
@@ -460,7 +461,7 @@ class NoveltySearch(object):
             # assign novelty as the fitness for each individual
             NEAT.ZipFitness(genome_list, fitness_list)
 
-            print ">> rarity"
+#            print ">> rarity"
             # calculate rarity
             for (generation_id, behavior) in enumerate(behavior_list):
                 #print "  %d\r" % generation_id,
@@ -482,10 +483,23 @@ class NoveltySearch(object):
                 
                 for stat in stats2:
                     
+                    salient_2 = stat.salient[0]
+                    salient_feature_index_2 = stat.salient_feature_index[0]
+                    salient_feature_name_2 = FEATURE_NAMES[salient_feature_index_2]
+                    
                     rarity_2 = stat.rarity
                     
                     if max_rarity_2 is None or rarity_2 > max_rarity_2:
+                        print "NEW CHAMPION"
                         max_rarity_2 = rarity_2
+                        max_salient_2 = salient_2
+                        max_salient_feature_name_2 = salient_feature_name_2
+                        print "max_rarity_2 = %f, %s = %f" % (max_rarity_2, max_salient_feature_name_2, max_salient_2)
+                        
+                        if yesno.query("Replay?"):
+                            ball_keeper.play_genome(self.game, genome)
+                            
+                        
                 
 #                    print stat.rarity, stat.salient_feature_index, stat.salient
                     
@@ -497,10 +511,11 @@ class NoveltySearch(object):
                 
                 for stat in stats:                   
                     self.rarest.insert(stat)
-            print ""
-            print "<< rarity"
+#            print ""
+#            print "<< rarity"
             
-            print "max_rarity_2 = %f" % (max_rarity_2)
+            print " "
+            print "max_rarity_2 = %f, %s = %f" % (max_rarity_2, max_salient_feature_name_2, max_salient_2)
             
             print ("generation#%d" % (generation)),
 
@@ -554,6 +569,8 @@ def main(args):
 
     novelty_searcher = NoveltySearch(
         genome, parameters, evaluate, rarity_table_params, threshhold_control, seed)
+
+    novelty_searcher.game = game
 
     thread.start_new_thread(novelty_searcher.do_generations, ())
 

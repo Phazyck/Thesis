@@ -20,13 +20,24 @@ class RarityRecognizer2(object):
         means = self.means
         std_devs = self.std_devs
         
+        l_means = len(means)
+        l_std_devs = len(std_devs)
+        
         sqr_dist_sum = 0.0
         
         for (idx, feature) in enumerate(feature):
+        
+            print "feature = %f" % feature
+            
             feature_index = feature_indices[idx]
+            print "feature_index = %d" % feature_index
+            print "feature_name = %s" % FEATURE_NAMES[feature_index]
             
             mean = means[feature_index]
+            
+            print "mean = %f" % mean
             std_dev = std_devs[feature_index]
+            print "std_dev = %f" % std_dev
             
             dist = (mean - feature) / std_dev
             
@@ -35,6 +46,10 @@ class RarityRecognizer2(object):
         from math import sqrt
         
         rarity = sqrt(sqr_dist_sum)
+        
+        print "rarity = %f" % rarity
+        
+        raw_input()
         
         return rarity
         
@@ -45,6 +60,9 @@ class RarityRecognizer2(object):
         best_rarity = None
         best_values = []
         best_feature_indices = []
+        
+        print "calculating stats"
+        print "-" * 64
         
         for idx in range(num_features):
             value = (behavior[idx],)
@@ -60,14 +78,22 @@ class RarityRecognizer2(object):
                 best_values.append(value)
                 best_feature_indices.append(feature_idx)
                 
+        print "-" * 64
+        print "done statsinginginging"
+                
         rarity_stats_list = []
         
         num_stats = len(best_values)
         
+        print "best rarity = %f" % best_rarity
+        
         for idx in range(num_stats):
             best_value = best_values[idx]
             best_feature_index = best_feature_indices[idx]
+            best_feature_name = FEATURE_NAMES[best_feature_index]
             
+            print "value = %f" % best_value
+            print "index = %d" % best_feature_index
                 
             rarity_stats = RarityStats2(
                 behavior, best_value, best_feature_index, rarity)
