@@ -249,16 +249,31 @@ subset = [
     "average_distance_ball_player",
 
     # 10
-    "max_ball_velocity",
+    #"max_ball_velocity",
     
     # 11
-    "max_ball_y_position",
+    #"max_ball_y_position",
     
     # 12
-    "max_distance_player_ball",
+    #"max_distance_player_ball",
 
     # 13
-    "final_distance_ball_player"
+    #"final_distance_ball_player",
+
+    # 14
+    #"player_jumps_per_frame",
+    
+    # 15
+    #"collisions_ball_player_per_frame",
+    
+    # 16
+    #"collisions_ball_wall_per_frame",
+    
+    # 17
+    #"travel_distance_player_per_frame",
+
+    # 18
+    #"travel_distance_ball_per_frame"
 ]
 
 class SubsetFilter(object):
