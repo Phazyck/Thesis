@@ -33,6 +33,8 @@ import config
 
 from sampling2 import Meta
 
+import recognizer2
+
 # helper function to calculate the novelty of 'behavior' given a list of
 # 'behaviors'
 def calc_novelty(behavior, behaviors):
@@ -325,6 +327,8 @@ class NoveltySearch(object):
             sample_count, population_size, generations, bin_count)
 
         self.rarity_table = rarity_table
+        
+        self.rarity_recognizer2 = recognizer2.make_recognizer(rarity_table)
 
         from datetime import datetime
 
@@ -377,6 +381,8 @@ class NoveltySearch(object):
         # do the requested number of generations of evolution
 
         generation = -1
+        
+        max_rarity_2 = None
 
         while True:
         
@@ -442,8 +448,8 @@ class NoveltySearch(object):
             print ">> rarity"
             # calculate rarity
             for (generation_id, behavior) in enumerate(behavior_list):
-                print "  %d\r" % generation_id,
-                sys.stdout.flush()
+                #print "  %d\r" % generation_id,
+                #sys.stdout.flush()
                 
                 genome = genome_list[generation_id]
 
@@ -456,11 +462,30 @@ class NoveltySearch(object):
                     self.rarity_table,
                     self.threshhold_control)
                 
-                for stat in stats:
+#                print "-"*32
+                stats2 = self.rarity_recognizer2.get_rarity_stats(behavior, filter.indices)
+                
+                for stat in stats2:
                     
+                    rarity_2 = stat.rarity
+                    
+                    if max_rarity_2 is None or rarity_2 > max_rarity_2:
+                        max_rarity_2 = rarity_2
+                
+#                    print stat.rarity, stat.salient_feature_index, stat.salient
+                    
+#                print " "
+#                for stat in stats:
+#                    print stat.rarity, stat.features, stat.salient
+                
+#                raw_input()
+                
+                for stat in stats:                   
                     self.rarest.insert(stat)
             print ""
             print "<< rarity"
+            
+            print "max_rarity_2 = %f" % (max_rarity_2)
             
             print ("generation#%d" % (generation)),
 
