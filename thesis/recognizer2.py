@@ -4,7 +4,7 @@ from ball_keeper import FEATURE_NAMES
        
 class RarityStats2(object):
 
-    def __init__(self, behavior, salient, salient_feature_index, rarity):
+    def __init__(self, behavior, salient, salient_feature_index, rarity, feature_name):
         self.behavior = behavior
         self.salient = salient
         self.salient_feature_index = salient_feature_index
@@ -96,7 +96,7 @@ class RarityRecognizer2(object):
             print "index = %d" % best_feature_index
                 
             rarity_stats = RarityStats2(
-                behavior, best_value, best_feature_index, rarity)
+                behavior, best_value, best_feature_index, best_feature_name, rarity)
                 
             rarity_stats_list.append(rarity_stats)
             
