@@ -302,7 +302,7 @@ class NoveltySearch(object):
         pkl_path = self.pkl_path
         rarity_table_params = self.rarity_table_params
         most_rare = self.rarest.best
-
+        
         if not os.path.isfile(pkl_path):
             pkl_file = open(pkl_path, "wb")
             pickle.dump(rarity_table_params, pkl_file)
@@ -335,7 +335,10 @@ class NoveltySearch(object):
         if not os.path.exists(dir_name):
             os.makedirs(dir_name)
 
-        file_name = "novelty_%04d.%02d.%02d_%02d:%02d:%02d" % (
+        feature_count = len(filter.names)
+            
+        file_name = "novelty_f%d_g%d_t%.1f_%04d.%02d.%02d_%02d:%02d:%02d" % (
+            feature_count, generations, threshhold_control,
             now.year, now.month, now.day, now.hour, now.minute, now.second)
 
         self.csv_path = os.path.join(dir_name, file_name + ".csv")
@@ -392,13 +395,7 @@ class NoveltySearch(object):
 
             self.running = True
             
-            # take a snapshot of the rarest
-
-            if generation > 0 and generation % 5 == 0:
-                print "Taking a snapshot...",
-                self.snap_shot(generation)
-                print "...done!"
-
+            
             genome_list = NEAT.GetGenomeList(population)
 
             # get the behavior for each genome in the population
@@ -474,6 +471,14 @@ class NoveltySearch(object):
                 print "\tbest rarity: %f\taverage rarity: %f" % (best_rarity, avg_rarity)
             else:
                 print ""
+
+            # take a snapshot of the rarest
+
+            if generation % 5 == 0:
+                print "Taking a snapshot...",
+                self.snap_shot(generation)
+                print "...done!"
+
 
             # advance the population into the next generation
             
