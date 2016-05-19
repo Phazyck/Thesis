@@ -355,7 +355,7 @@ def _main(argv):
     elif mode == "summary":
         get_summary(pkl_path)
     else:
-        print "usage: python data2csv.py [full|progression] <pkl_path>"
+        print "usage: python data2csv.py [full|progression|summary] <pkl_path>"
     
 if __name__ == '__main__':
     _main(sys.argv)
