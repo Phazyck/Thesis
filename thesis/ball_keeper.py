@@ -8,6 +8,7 @@
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-statements
 
+import sys
 import random as rnd
 import math
 import MultiNEAT as NEAT
@@ -21,7 +22,7 @@ from pymunk import Vec2d
 from pymunk.pygame_util import draw
 
 import draw_net
-
+import yesno
 import config
 
 _COLLISION_TYPE_WALL = 0
@@ -497,15 +498,29 @@ def evaluate_genome(xxx_todo_changeme, genome, use_random=False):
 
 def play_genome(xxx_todo_changeme1, genome, use_random=False):
     (space, screen) = xxx_todo_changeme1
-    return _evaluate(
+    
+    start_x = _get_start_x(use_random)
+    start_vx = _get_start_vx(use_random)
+    bot_start_x = _get_bot_start_x(use_random)
+    
+    result = _evaluate(
         genome,
         space,
         screen,
         False,
-        _get_start_x(use_random),
-        _get_start_vx(use_random),
-        _get_bot_start_x(use_random))
+        start_x,
+        start_vx,
+        bot_start_x)
 
+    do_save = yesno.query("Do you wanna save this replay?")
+    
+    if do_save:
+        file_name = raw_input("Give the save a name: ")
+        path = "replays/%s_%f_%f_%f.ann" % (file_name, start_x, start_vx, bot_start_x)
+        genome.Save(path)
+        print "Saved replay to '%s'" % path
+    
+    return result 
 
 def play_human(xxx_todo_changeme2, use_random=False):
     (space, screen) = xxx_todo_changeme2
@@ -556,13 +571,50 @@ def init(display=False):
 
     return (space, screen)
 
-def _main():
+def play_replay(game, path):
+    
+    genome = NEAT.Genome(path)
+    
+    (space, screen) = game
+    
+    # parse params from file name
+    idx_ftype = path.rfind('.')
+    path_no_type = path[:idx_ftype]
+    parts = path_no_type.split('_')
+    params = parts[-3:]
+    
+    start_x = float(params[0])
+    start_vx = float(params[1])
+    bot_start_x = float(params[2])    
+    
+    watch_again = True
+    
+    while watch_again:
+        result = _evaluate(
+            genome,
+            space,
+            screen,
+            False,
+            start_x,
+            start_vx,
+            bot_start_x)
+        result.debug_print()
+        watch_again = yesno.query("Do you wanna watch it again?")
+
+def main(argv):
+    
     game = init()
-    while True:
-        print "-" * 64
-        play_human(game).debug_print()
+    
+    if len(argv) == 2:
+        path = argv[1]
+        play_replay(game, path)
+        
+    else:
+        while True:
+            print "-" * 64
+            play_human(game).debug_print()
             
 
 # If run as script, not module
 if __name__ == "__main__":
-    _main()
+    main(sys.argv)
