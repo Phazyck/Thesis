@@ -2,13 +2,38 @@ import sys
 from rarity_recognition import get_rarity_table, ValueBinner, RarityTable
 from ball_keeper import FEATURE_NAMES
        
+rr2_repr_fmt = """
+{
+    behavior = %s,
+    sailent = %s,
+    salient_feature_index = %s,
+    rarity = %s,
+    feature_name = %s
+}
+"""
+       
 class RarityStats2(object):
 
-    def __init__(self, behavior, salient, salient_feature_index, rarity, feature_name):
+    def __init__(self, 
+        behavior, 
+        salient, 
+        salient_feature_index, 
+        rarity, 
+        feature_name):
+        
         self.behavior = behavior
         self.salient = salient
         self.salient_feature_index = salient_feature_index
         self.rarity = rarity
+        self.feature_name = feature_name
+        
+    def __str__(self):
+        
+        return (rr2_repr_fmt % (self.behavior,
+            self.salient,
+            self.salient_feature_index,
+            self.rarity,
+            self.feature_name))
        
 class RarityRecognizer2(object):
 
@@ -17,27 +42,26 @@ class RarityRecognizer2(object):
         self.std_devs = std_devs
     
     def get_rarity(self, feature, feature_indices):
+        # print "\n>>> get_rarity\n"
+    
         means = self.means
         std_devs = self.std_devs
-        
-        l_means = len(means)
-        l_std_devs = len(std_devs)
         
         sqr_dist_sum = 0.0
         
         for (idx, feature) in enumerate(feature):
         
-            print "feature = %f" % feature
+            # print "feature = %f" % feature
             
             feature_index = feature_indices[idx]
-            print "feature_index = %d" % feature_index
-            print "feature_name = %s" % FEATURE_NAMES[feature_index]
+            # print "feature_index = %d" % feature_index
+            # print "feature_name = %s" % FEATURE_NAMES[feature_index]
             
             mean = means[feature_index]
             
-            print "mean = %f" % mean
+            # print "mean = %f" % mean
             std_dev = std_devs[feature_index]
-            print "std_dev = %f" % std_dev
+            # print "std_dev = %f" % std_dev
             
             dist = (mean - feature) / std_dev
             
@@ -47,13 +71,18 @@ class RarityRecognizer2(object):
         
         rarity = sqrt(sqr_dist_sum)
         
-        print "rarity = %f" % rarity
+        # print "rarity = %f" % rarity
         
-        raw_input()
-        
+        # print "\n<<< get_rarity\n"
+            
         return rarity
         
     def get_rarity_stats(self, behavior, feature_indices):
+        
+        # print "-" * 64
+        # print "\n>>> get_rarity_stats\n"
+        
+        # print "behavior = %s" % str(behavior)
         
         num_features = len(behavior)
         
@@ -61,44 +90,62 @@ class RarityRecognizer2(object):
         best_values = []
         best_feature_indices = []
         
-        print "calculating stats"
-        print "-" * 64
-        
         for idx in range(num_features):
+            # print "idx = %d" % idx 
             value = (behavior[idx],)
+            # print "value = %s" % str(value)
             feature_idx = (feature_indices[idx],)
+            # print "feature_idx = %s" % str(feature_idx)
             
             rarity = self.get_rarity(value, feature_idx)
             
+            # print "rarity = %s" % str(rarity)
+            
             if best_rarity is None or rarity > best_rarity:
                 best_rarity = rarity
+                # print "new best: %f" % best_rarity
                 best_values = [value]
                 best_feature_indices = [feature_idx]
             elif rarity == best_rarity:
+                # print "expanding best"
                 best_values.append(value)
                 best_feature_indices.append(feature_idx)
-                
-        print "-" * 64
-        print "done statsinginginging"
                 
         rarity_stats_list = []
         
         num_stats = len(best_values)
         
-        print "best rarity = %f" % best_rarity
+        # print "num_stats = %d" % num_stats
         
         for idx in range(num_stats):
+            # print "idx = %d" % idx
             best_value = best_values[idx]
-            best_feature_index = best_feature_indices[idx]
-            best_feature_name = FEATURE_NAMES[best_feature_index]
             
-            print "value = %f" % best_value
-            print "index = %d" % best_feature_index
+            best_feature_index = best_feature_indices[idx]
+            
+            best_feature_name = tuple(FEATURE_NAMES[idx] for idx in best_feature_index)
+            
+            # print "best_value = %s" % str(best_value)
+            # print "best_feature_index = %s" % str(best_feature_index)
+            # print "best_feature_name = %s" % str(best_feature_name)
                 
             rarity_stats = RarityStats2(
-                behavior, best_value, best_feature_index, best_feature_name, rarity)
+                behavior, best_value, best_feature_index, best_rarity, best_feature_name)
                 
             rarity_stats_list.append(rarity_stats)
+            
+        # print "\n"
+        # print "best rarity = %f" % best_rarity
+        
+        # print "results (%d)" % len(rarity_stats_list)
+        
+        # for stat in rarity_stats_list:
+        #     print "%s" % stat
+            
+        # print "\n<<< get_rarity_stat\n"
+        # print "-" * 64
+        
+        # raw_input()
             
         return rarity_stats_list
                  

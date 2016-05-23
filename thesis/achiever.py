@@ -220,19 +220,19 @@ def make_rarity_stats(genome,
 
 subset = [
     # 0
-    "total_frames_passed",
+    # "total_frames_passed",
     
     # 1
     "total_collisions_ball_player",
     
     # 2
-    "total_collisions_ball_wall",
+    # "total_collisions_ball_wall",
     
     # 3
     "total_player_jumps",
     
     # 4
-    "total_travel_distance_player",
+    # "total_travel_distance_player",
     
     # 5
     "total_travel_distance_ball",
