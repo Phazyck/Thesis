@@ -32,6 +32,8 @@ import thread
 import config
 from ball_keeper import FEATURE_NAMES
 
+from rarity_kde import KdeRecognizer, get_kdes
+
 from sampling2 import Meta
 
 import recognizer2
@@ -77,7 +79,7 @@ class RarityStats(object):
     def get_value(self):
         return self.behavior
 
-def make_rarity_stats(genome,
+def make_rarity_stats_table(genome,
                       behavior,
                       feature_indices,
                       generation,
@@ -184,7 +186,7 @@ def make_rarity_stats(genome,
 
     r_probability = lowest_probability
     r_rarity = best_rarity
-
+    
     stats = []
     for i in range(len(best_features)):
         r_features = best_features[i]
@@ -217,22 +219,91 @@ def make_rarity_stats(genome,
         stats.append(r_stats)
 
     return stats
+    
+def make_rarity_stats_kde(genome,
+                      behavior,
+                      feature_indices,
+                      generation,
+                      generation_id,
+                      kdes):
+
+    r_genome = NEAT.Genome(genome)
+    r_behavior = behavior
+    r_generation = generation
+    r_generation_id = generation_id
+    
+    import math
+
+    def log(value):
+        if value == 0:
+            value = numpy.nextafter(0,1)
+        return math.log(value, 2)
+
+    best_features = None
+    lowest_probability = None
+    best_rarity = None
+    best_selected = None
+
+    for idx, feature_idx in enumerate(feature_indices):
+        value = behavior[idx]
+        
+        probability = kdes.get_probability(value, feature_idx)
+        rarity = -log(probability)
+    
+        if ((best_rarity is None) or (rarity > best_rarity)):
+
+            best_features = [(feature_idx,)]
+            lowest_probability = probability
+            best_rarity = rarity
+            best_selected = [(value,)]
+            
+            
+        elif ((best_rarity != None) and (rarity == best_rarity)):
+            best_features.append((feature_idx,))
+            lowest_probability = probability
+            best_rarity = rarity
+            best_selected.append((value,))
+            
+
+    r_probability = lowest_probability
+    r_rarity = best_rarity
+
+    stats = []
+    for i in range(len(best_features)):
+        r_features = best_features[i]
+        r_support = None
+        r_salient = best_selected[i]
+                
+        r_stats = RarityStats(
+            r_genome,
+            r_behavior,
+            r_salient,
+            [],
+            r_generation,
+            r_generation_id,
+            r_features,
+            r_support,
+            r_probability,
+            r_rarity)
+        stats.append(r_stats)
+
+    return stats
 
 subset = [
     # 0
-    # "total_frames_passed",
+    "total_frames_passed",
     
     # 1
     "total_collisions_ball_player",
     
     # 2
-    # "total_collisions_ball_wall",
+    "total_collisions_ball_wall",
     
     # 3
     "total_player_jumps",
     
     # 4
-    # "total_travel_distance_player",
+    "total_travel_distance_player",
     
     # 5
     "total_travel_distance_ball",
@@ -247,7 +318,7 @@ subset = [
     "average_y_position_ball",
     
     # 9
-    # "average_distance_ball_player",
+    "average_distance_ball_player",
 
     # 10
     # "max_ball_velocity",
@@ -313,6 +384,8 @@ class SubsetFilter(object):
         return result
          
 filter = SubsetFilter(subset)
+       
+use_kde = True
             
 class NoveltySearch(object):
 
@@ -339,9 +412,16 @@ class NoveltySearch(object):
 
         self.rarity_table_params = rarity_table_params
         (sample_count, population_size, generations, bin_count) = rarity_table_params
+        
+
+        if use_kde:
+            self.kdes = get_kdes(sample_count,
+                population_size,
+                generations)
+        
         rarity_table = rarity_recognition.get_rarity_table(
             sample_count, population_size, generations, bin_count)
-
+        
         self.rarity_table = rarity_table
         
         self.rarity_recognizer2 = recognizer2.make_recognizer(rarity_table)
@@ -378,7 +458,10 @@ class NoveltySearch(object):
         self.population = NEAT.Population(genome, params, True, 1.0, seed)
         self.population.RNG.Seed(seed)
 
-        self.rarest = NBest(100, nbest.filter_all_salients_match_bins)
+        if use_kde:
+            self.rarest = NBest(100, nbest.filter_all_salients_match)
+        else:
+            self.rarest = NBest(100, nbest.filter_all_salients_match_bins)
 
         self.do_halt = False
         self.running = True
@@ -469,35 +552,43 @@ class NoveltySearch(object):
                 
                 genome = genome_list[generation_id]
 
-                stats = make_rarity_stats(
-                    genome,
-                    behavior,
-                    filter.indices,
-                    generation,
-                    generation_id,
-                    self.rarity_table,
-                    self.threshhold_control)
+                if use_kde:
+                    stats = make_rarity_stats_kde(genome,
+                        behavior,
+                        filter.indices,
+                        generation,
+                        generation_id,
+                        self.kdes)
                 
-#                print "-"*32
-                stats2 = self.rarity_recognizer2.get_rarity_stats(behavior, filter.indices)
+                else:
+                    stats = make_rarity_stats_hist(
+                        genome,
+                        behavior,
+                        filter.indices,
+                        generation,
+                        generation_id,
+                        self.rarity_table,
+                        self.threshhold_control)
+
+                    # stats2 = self.rarity_recognizer2.get_rarity_stats(behavior, filter.indices)
                 
-                for stat in stats2:
-                    
-                    salient_2 = stat.salient[0]
-                    salient_feature_index_2 = stat.salient_feature_index[0]
-                    salient_feature_name_2 = FEATURE_NAMES[salient_feature_index_2]
-                    
-                    rarity_2 = stat.rarity
-                    
-                    if max_rarity_2 is None or rarity_2 > max_rarity_2:
-                        print "NEW CHAMPION"
-                        max_rarity_2 = rarity_2
-                        max_salient_2 = salient_2
-                        max_salient_feature_name_2 = salient_feature_name_2
-                        print "max_rarity_2 = %f, %s = %f" % (max_rarity_2, max_salient_feature_name_2, max_salient_2)
+                    # for stat in stats2:
                         
-                        if yesno.query("Replay?"):
-                            ball_keeper.play_genome(self.game, genome)
+                    #     salient_2 = stat.salient[0]
+                    #     salient_feature_index_2 = stat.salient_feature_index[0]
+                    #     salient_feature_name_2 = FEATURE_NAMES[salient_feature_index_2]
+                        
+                    #     rarity_2 = stat.rarity
+                        
+                    #     if max_rarity_2 is None or rarity_2 > max_rarity_2:
+                    #         print "NEW CHAMPION"
+                    #         max_rarity_2 = rarity_2
+                    #         max_salient_2 = salient_2
+                    #         max_salient_feature_name_2 = salient_feature_name_2
+                    #         print "max_rarity_2 = %f, %s = %f" % (max_rarity_2, max_salient_feature_name_2, max_salient_2)
+                            
+                    #         if yesno.query("Replay?"):
+                    #             ball_keeper.play_genome(self.game, genome)
                             
                         
                 
@@ -514,8 +605,8 @@ class NoveltySearch(object):
 #            print ""
 #            print "<< rarity"
             
-            print " "
-            print "max_rarity_2 = %f, %s = %f" % (max_rarity_2, max_salient_feature_name_2, max_salient_2)
+            # print " "
+            # print "max_rarity_2 = %f, %s = %f" % (max_rarity_2, max_salient_feature_name_2, max_salient_2)
             
             print ("generation#%d" % (generation)),
 
