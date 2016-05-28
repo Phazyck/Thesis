@@ -21,21 +21,60 @@ from math import log
 class KdeRecognizer(object):
     
     def __init__(self, 
-            kdes, 
+            samples, 
             sample_count,
             population_size,
             generations):
-        self.kdes = kdes
-        self.sample_count = sample_count
+        self.feature_count = len(samples)
+        
+        self.base_samples = samples
+        self.base_sample_count = sample_count
+        
+        self.additinal_samples = [[]] * self.feature_count
+        self.additinal_sample_count = 0
+        
         self.population_size = population_size
         self.generations = generations
+        self.additional_samples = [[]] * self.feature_count
+        self.invalidate_kdes()
         
     def get_probability(self, value, feature_id):
         
-        kde = self.kdes[feature_id]
+        kdes = self.kdes
+        kde = kdes[feature_id]
+        
+        if kde is None:
+            base_data = self.base_samples[feature_id]
+            additional_data = self.additional_samples[feature_id]
+            
+            data = base_data + additional_data
+            kde = gaussian_kde(data)
+            kde.covariance_factor = lambda : 1
+            kde._compute_covariance()
+            kdes[feature_id] = kde
+            
         probability = kde(value)
         
         return probability
+        
+    def invalidate_kdes(self):
+        self.kdes = [None] * self.feature_count
+        
+    def total_sample_count(self):
+        c1 = self.base_sample_count
+        c2 = self.additional_sample_count
+        return c1 + c2
+        
+    def set_samples(self, behavior_list):
+    
+        additional_samples = [[]] * self.feature_count
+        self.additinal_sample_count = len(behavior_list)
+        
+        for behavior in behavior_list:
+            for list_idx, value in enumerate(behavior):
+                additional_samples[list_idx].append(value)
+        
+        self.invalidate_kdes()
     
 def get_kdes_path(sample_count, population_size, generations):
     dir_name = "kde_cache"
@@ -104,29 +143,16 @@ def build_kdes(sample_count, population_size, generations, kdes_path):
     
     behavior_list = sample_manager.sample_reader(sample_count)
         
-    arrays = []
-    for _ in column_names:
-        array = np.zeros(sample_count)
-        arrays.append(array)
+    list_of_lists = [[]] * len(column_names)
     
     for idx, behavior in enumerate(behavior_list):
         print "\r%d" % idx,
         sys.stdout.flush()
         
-        for arr_idx, value in enumerate(behavior):
-            array = arrays[arr_idx]
-            array[idx] = value
+        for list_idx, value in enumerate(behavior):
+            list_of_lists[list_idx].append(value)
     
-    kde_list = []
-    
-    for array in arrays:
-        
-        kde = gaussian_kde(array)
-        kde.covariance_factor = lambda : 1
-        kde._compute_covariance()
-        kde_list.append(kde)
-    
-    kdes = KdeRecognizer(kde_list, 
+    kdes = KdeRecognizer(list_of_lists, 
             sample_count,
             population_size,
             generations)

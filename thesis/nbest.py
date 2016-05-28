@@ -100,6 +100,9 @@ class NBest(object):
         self.limit = n
         self.filter = filter
         
+    def clear(self):
+        self.best = []
+        
     def insert(self, contender):
         """
         A function for inserting a new element into the collection.
