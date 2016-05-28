@@ -148,7 +148,6 @@ def make_rarity_stats_table(genome,
         else:
             break
         
-        
         bin_indices = tuple(bin_indices)
         
         if bin_indices in histogram:
