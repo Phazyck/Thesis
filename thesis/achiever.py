@@ -272,12 +272,19 @@ def make_rarity_stats_kde(genome,
         r_features = best_features[i]
         r_support = None
         r_salient = best_selected[i]
+        
+        r_salient_bin_indices = []
+        
+        for feature in r_features:
+            r_salient_bin_indices.append((feature,None))
+                
+        r_salient_bin_indices = tuple(r_salient_bin_indices)
                 
         r_stats = RarityStats(
             r_genome,
             r_behavior,
             r_salient,
-            [],
+            r_salient_bin_indices,
             r_generation,
             r_generation_id,
             r_features,
@@ -493,7 +500,7 @@ class NoveltySearch(object):
         kde_queue = []
         
         recorded_samples = []
-
+        
         while True:
         
             # entering next generation
@@ -525,7 +532,7 @@ class NoveltySearch(object):
             
             candidate_samples = None    
             
-            if use_kde and (generation % 5 == 0):
+            if use_kde and (generation == 995):
                 
                 additional_samples = []
                 for recorded_sample in recorded_samples:
@@ -584,9 +591,11 @@ class NoveltySearch(object):
             if not (candidate_samples is None):
     #            print ">> rarity"
                 # calculate rarity
-                for candidate_sample in candidate_samples:
-                    #print "  %d\r" % generation_id,
-                    #sys.stdout.flush()
+                num_candidates = len(candidate_samples)
+                for cid, candidate_sample in enumerate(candidate_samples):
+                
+                    print "  %d of %d\r" % (cid, num_candidates),
+                    sys.stdout.flush()
                     
                     behavior = candidate_sample.behavior
                     genome = candidate_sample.genome
@@ -650,6 +659,13 @@ class NoveltySearch(object):
                 # print "max_rarity_2 = %f, %s = %f" % (max_rarity_2, max_salient_feature_name_2, max_salient_2)
                 best_rarity = self.rarest.best_ranking()
                 avg_rarity = self.rarest.avg_ranking()   
+                
+                print "Taking a snapshot...",
+                self.snap_shot(generation)
+                print "...done!"
+                
+                return
+                
             else:   
                 best_rarity = None
             
@@ -661,12 +677,6 @@ class NoveltySearch(object):
                 print ""
 
             # take a snapshot of the rarest
-
-            if generation % 5 == 0:
-                print "Taking a snapshot...",
-                self.snap_shot(generation)
-                print "...done!"
-
 
             # advance the population into the next generation
             
