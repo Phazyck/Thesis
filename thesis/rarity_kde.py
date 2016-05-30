@@ -163,8 +163,8 @@ def inspect(x, xlabel, bin_count):
 
     x_len = len(x)
     
-    kde_time(x, x_len/100)
-    kde_time(x, x_len)
+    #kde_time(x, x_len/100)
+    #kde_time(x, x_len)
 
     fig = plt.figure()
     data = x
@@ -197,9 +197,8 @@ def inspect(x, xlabel, bin_count):
     
 def plot3d(x, xlabel, y, ylabel, bin_count):
 
-    
     fig = plt.figure()
-    ax = fig.add_subplot(231, projection='3d', xlabel=xlabel, ylabel=ylabel)
+    ax = fig.add_subplot(231, projection='3d')
     
     hist, xedges, yedges = np.histogram2d(x, y, bins=bin_count)
     hist = np.log10(hist)
@@ -320,7 +319,7 @@ def test(args):
     """
     from flags import query_int
 
-    sample_count = query_int("sample_count", 10000000)
+    sample_count = query_int("sample_count", 10000)
     population_size = query_int("population_size", 10)
     generations = query_int("generations", 200)
     bin_count = query_int("bin_count", 40)
@@ -350,19 +349,12 @@ def test(args):
         
     print ""
     
-    for idx in range(1):
-        print idx
-        array = arrays[idx]
-        name = column_names[idx]
-        inspect(array, name, bin_count)
-        plt.show()
-    
-    print "done"
-    
-    
-    raw_input()
-    
-    exit()
+    # for idx in range(10):
+    #     print idx
+    #     array = arrays[idx]
+    #     name = column_names[idx]
+    #     inspect(array, name, bin_count)
+    #     plt.show()
     
     def get_feature_idx():
         for idx, name in enumerate(column_names):
@@ -380,8 +372,6 @@ def test(args):
     
     array0 = arrays[idx0]
     array1 = arrays[idx1]
-    
-    
     
     plot3d(array0, name0, array1, name1, bin_count)
         
@@ -412,4 +402,4 @@ def main(args):
         print "Sorry, this is not supported at the moment..."
 
 if __name__ == "__main__":
-    main(sys.argv)
+    test(sys.argv)
